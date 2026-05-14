@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genius 2 Unit 2 Workbook</title>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- アイコンコンポーネント (Lucide icons の代替) ---
+    const IconBase = ({ children, size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {children}
+      </svg>
+    );
+
+    const Volume2 = (props) => <IconBase {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></IconBase>;
+    const CheckCircle = (props) => <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>;
+    const Eye = (props) => <IconBase {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></IconBase>;
+    const EyeOff = (props) => <IconBase {...props}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></IconBase>;
+    const Info = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></IconBase>;
+    const Menu = (props) => <IconBase {...props}><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></IconBase>;
+    const XIcon = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></IconBase>;
+    const BookOpen = (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>;
+    const ChevronRight = (props) => <IconBase {...props}><polyline points="9 18 15 12 9 6"/></IconBase>;
+    const ListPlus = (props) => <IconBase {...props}><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></IconBase>;
+
+    // --- データ定義 (Unit 2 用) ---
+    const quizData = {
+      A: {
+        title: "A. 次の日本語に対応する語句になるように（　）に英語１語を入れましょう。",
+        questions: [
+          { id: 1, ja: "複雑な恋愛小説", segments: [{ text: "complicated " }, { type: "input", answer: "love" }, { text: " " }, { type: "input", answer: "story" }], speech: "complicated love story", explanation: "romantic novelも可。" },
+          { id: 2, ja: "SF小説のように聞こえる", segments: [{ text: "sound like " }, { type: "input", answer: "science" }, { text: " " }, { type: "input", answer: "fiction" }], speech: "sound like science fiction", explanation: "教科書p.139 「Useful Words, Phrases, and Expressions [本]」参照。" },
+          { id: 3, ja: "ハッピーエンドである", segments: [{ text: "have a happy " }, { type: "input", answer: "ending" }], speech: "have a happy ending", explanation: "a happy end とは言わないので注意する。" },
+          { id: 4, ja: "心温まる話を読む", segments: [{ text: "read a " }, { type: "input", answer: "heartwarming" }, { text: " story" }], speech: "read a heartwarming story", explanation: "教科書p.139 「Useful Words, Phrases, and Expressions [本]」参照。" },
+          { id: 5, ja: "素晴らしい体験になるでしょう", segments: [{ text: "will be an " }, { type: "input", answer: "amazing" }, { text: " experience" }], speech: "will be an amazing experience", explanation: "教科書p.139 「Useful Words, Phrases, and Expressions [本]」参照。" },
+          { id: 6, ja: "その本の話の筋を掴む", segments: [{ text: "get the " }, { type: "input", answer: "storyline" }, { text: " of the book" }], speech: "get the storyline of the book", explanation: "grasp も使えるがgetの方が一般的。" },
+          { id: 7, ja: "ベンジャミン・フランクリンのサイン入りの伝記", segments: [{ text: "signed " }, { type: "input", answer: "biography" }, { text: " of Benjamin Franklin" }], speech: "signed biography of Benjamin Franklin", explanation: "ここでのサインは「署名」を指すためsigned。「(有名人の記念のための) サイン」であるautographと区別する。" },
+          { id: 8, ja: "探偵小説作家", segments: [{ type: "input", answer: "detective" }, { text: " " }, { type: "input", answer: "story" }, { text: " writer" }], speech: "detective story writer", explanation: "detectiveは「刑事、探偵」の意味。" },
+          { id: 9, ja: "とても印象的なタイトル", segments: [{ text: "a very " }, { type: "input", answer: "impressive" }, { text: " " }, { type: "input", answer: "title" }], speech: "a very impressive title", explanation: "教科書p.139 「Useful Words, Phrases, and Expressions [本]」参照。" },
+          { id: 10, ja: "（自分を）主役に重ね合わせる", segments: [{ text: "identify with the " }, { type: "input", answer: "main" }, { text: " " }, { type: "input", answer: "character" }], speech: "identify with the main character", explanation: "mainの代わりにleadingやcentralも可。" }
+        ]
+      },
+      B: {
+        title: "B. 焦点を変えて書かれた２つの文の内容がほぼ同じになるように空所に適切な語を入れましょう。",
+        questions: [
+          { id: 1, ja: "Greenwillow Books publishes Amelia Bedelia series.", segments: [{ text: "Amelia Bedelia series " }, { type: "input", answer: "are" }, { text: " " }, { type: "input", answer: "published" }, { text: " " }, { type: "input", answer: "by" }, { text: " Greenwillow Books." }], speech: "Amelia Bedelia series are published by Greenwillow Books.", explanation: "受動態の文。by以下で行為をする側を示す。この問題のようにby以下は必ずしも人とは限らない。series は単複同形。a series of ~というときは単数で扱うが、今回のような場合は複数形として捉えてare publishedとなる。" },
+          { id: 2, ja: "The book says that elephants can live up to 70 years in the wild.", segments: [{ type: "input", answer: "It", accept: ["it"] }, { text: " " }, { type: "input", answer: "is" }, { text: " " }, { type: "input", answer: "written" }, { text: " in the book that elephants can live up to 70 years in the wild." }], speech: "It is written in the book that elephants can live up to 70 years in the wild.", explanation: "that節の内容が長く、形式主語のitを置いている。" },
+          { id: 3, ja: "We can understand SDGs quickly thanks to the book.", segments: [{ text: "The book " }, { type: "input", answer: "enables" }, { text: " us " }, { type: "input", answer: "to" }, { text: " understand SDGs quickly." }], speech: "The book enables us to understand SDGs quickly.", explanation: "the bookを主語にした無生物主語の文。" },
+          { id: 4, ja: "People are talking about the book a great deal.", segments: [{ text: "The book " }, { type: "input", answer: "is" }, { text: " " }, { type: "input", answer: "being" }, { text: " " }, { type: "input", answer: "talked" }, { text: " about a great deal." }], speech: "The book is being talked about a great deal.", explanation: "もとの文が進行形であることに注意する。" }
+        ]
+      },
+      C: {
+        title: "C. 日本語の意味に合うように英文を完成させましょう。",
+        questions: [
+          { id: 1, ja: "その本には日本に関する魅力的な事実が60ページ以上も収められている。", segments: [{ text: "The book " }, { type: "input", answer: "has", accept: ["contains"] }, { text: " over 60 pages of fascinating facts about Japan." }], speech: "The book has over 60 pages of fascinating facts about Japan.", explanation: "the book を主語にした無生物主語の文。containsも可。" },
+          { id: 2, ja: "『星の王子さま』は300を超える言語に翻訳されてきました。", segments: [{ text: "The Little Prince " }, { type: "input", answer: "has" }, { text: " " }, { type: "input", answer: "been" }, { text: " " }, { type: "input", answer: "translated" }, { text: " into over 300 languages." }], speech: "The Little Prince has been translated into over 300 languages.", explanation: "日本語に含まれる完了形のニュアンスに注意する。" },
+          { id: 3, ja: "その本はすぐには出版されないかもしれない。", segments: [{ text: "The book " }, { type: "input", answer: "might", accept: ["may"] }, { text: " " }, { type: "input", answer: "not" }, { text: " " }, { type: "input", answer: "be" }, { text: " " }, { type: "input", answer: "published" }, { text: " soon." }], speech: "The book might not be published soon.", explanation: "「助動詞+受動態」の文。notの位置に注意する。mayも可。" }
+        ]
+      },
+      D: {
+        title: "D. 日本語の意味を表すように、（　）内の語句を並べかえて英文を完成させましょう。",
+        questions: [
+          { id: 1, ja: "著者は庭の樹齢100年の木に着想を得た。", segments: [{ text: "The author " }, { type: "input", answer: "was inspired by the 100-year-old tree", width: "full" }, { text: " in her garden." }], choices: ["by", "inspired", "the 100-year-old tree", "was"], speech: "The author was inspired by the 100-year-old tree in her garden.", explanation: "受動態の文。by以下で行為をする側を示す。" },
+          { id: 2, ja: "その魔法の街で彼女は偉大な魔法使いとして尊敬されている。", segments: [{ text: "In the magical town, she " }, { type: "input", answer: "is looked up to as a great witch", width: "full" }, { text: "." }], choices: ["a great witch", "as", "is", "looked", "to", "up"], speech: "In the magical town, she is looked up to as a great witch.", explanation: "look up to ~は句動詞のため受動態にしてもまとめて用いる。" },
+          { id: 3, ja: "どんな子どもでもそのシリーズには興奮するでしょう。", segments: [{ text: "Any kid " }, { type: "input", answer: "will be excited about the book series", width: "full" }, { text: "." }], choices: ["about", "be", "excited", "the book series", "will"], speech: "Any kid will be excited about the book series.", explanation: "「助動詞+受動態」の文。" },
+          { id: 4, ja: "最近までその本はそれほど多くの人に読まれてはいなかった。", segments: [{ type: "input", answer: "The book hadn't been read by so many people", accept: ["the book hadn't been read by so many people"], width: "full" }, { text: " until recently." }], choices: ["been", "read", "hadn't", "so many people", "by", "the book"], speech: "The book hadn't been read by so many people until recently.", explanation: "「過去完了+受動態」の文。" },
+          { id: 5, ja: "その報告書によれば異常気象はよりいっそう深刻なものになると言われている。", segments: [{ type: "input", answer: "The report says that extreme weather events", accept: ["the report says that extreme weather events"], width: "full" }, { text: " will become more severe." }], choices: ["extreme weather events", "says", "that", "the report"], speech: "The report says that extreme weather events will become more severe.", explanation: "無生物主語 「~を示す」 タイプの表現 (ライティング・ノートp. 13)。" },
+          { id: 6, ja: "その本ではその政治家を自己中心的な人物として描いている。", segments: [{ type: "input", answer: "The book portrays the politician as a selfish person", accept: ["the book portrays the politician as a selfish person"], width: "full" }, { text: "." }], choices: ["as", "a selfish person", "portrays", "the book", "the politician"], speech: "The book portrays the politician as a selfish person.", explanation: "無生物主語 「~を示す」 タイプの表現 (ライティング・ノートp. 13)。" }
+        ]
+      },
+      E: {
+        title: "E. 与えられた語句を使って、次の日本語を英語で表現しましょう。",
+        questions: [
+          { id: 1, ja: "芥川賞は無名の作家によって受賞された。", hints: "(the Akutagawa Prize, unknown, won)", segments: [{ type: "input", answer: "The Akutagawa Prize was won by an unknown writer", accept: ["the akutagawa prize was won by an unknown writer"], width: "full" }], speech: "The Akutagawa Prize was won by an unknown writer.", explanation: "winは「〈勝利・商品など)を 【競争などで/人から] 勝ち取る」という意味。" },
+          { id: 2, ja: "主人公は見知らぬ人に駅で話しかけられた。", hints: "(spoken, stranger)", segments: [{ type: "input", answer: "The main character was spoken to by a stranger in the station", accept: ["the main character was spoken to by a stranger in the station"], width: "full" }], speech: "The main character was spoken to by a stranger in the station.", explanation: "speak to~は句動詞のため受動態にしてもまとめて用いる。" },
+          { id: 3, ja: "この案内本はポケットに入れて持ち運びできます。", hints: "(be, pocket)", segments: [{ type: "input", answer: "This guidebook can be carried in your pocket", accept: ["this guidebook can be carried in your pocket"], width: "full" }], speech: "This guidebook can be carried in your pocket.", explanation: "「助動詞+受動態」の文。" },
+          { id: 4, ja: "この話は長い間多くの人に読まれてきました。", hints: "(read, long time)", segments: [{ type: "input", answer: "This story has been read by a lot of people for a long time", accept: ["this story has been read by a lot of people for a long time"], width: "full" }], speech: "This story has been read by a lot of people for a long time.", explanation: "「現在完了+受動態」の文。" },
+          { id: 5, ja: "この本の中の冗談であなたたちは笑うでしょう。", hints: "(make, laugh)", segments: [{ type: "input", answer: "The jokes in this book will make you laugh", accept: ["the jokes in this book will make you laugh"], width: "full" }], speech: "The jokes in this book will make you laugh.", explanation: "無生物主語「~に･･･させる」 タイプの表現(ライティング・ノートp.13)。" },
+          { id: 6, ja: "その航海日誌によれば，嵐のために船は出航できなかった。", hints: "(logbook, prevented, sailing)", segments: [{ type: "input", answer: "According to the logbook, the storm prevented our ship from sailing", accept: ["according to the logbook the storm prevented our ship from sailing"], width: "full" }], speech: "According to the logbook, the storm prevented our ship from sailing.", explanation: "無生物主語 「~に･･･させない」 タイプの表現(ライティング・ノートp. 13)。" }
+        ]
+      },
+      Adv_A: {
+        title: "Advanced A. 次の日本語の意味を表すように、それぞれ下の語（句）を並べかえて空所を補いましょう。",
+        questions: [
+          {
+            id: 1,
+            ja: "彼がその装置を発明したと言われている。",
+            choices: ["the machine", "said", "he", "is", "it", "that", "invented"],
+            segments: [
+              { type: "input", answer: "It is said that he invented the machine", accept: ["it is said that he invented the machine"], width: "full" },
+              { text: "." }
+            ],
+            speech: "It is said that he invented the machine.",
+            explanation: "「~と言われている」という意味のIt is said that~は形式主語と受動態を組み合わせた文。"
+          },
+          {
+            id: 2,
+            ja: "今までのところ，この教科書は私が物理を勉強するのに役立っている。",
+            choices: ["far", "has", "helped", "study", "me", "this textbook"],
+            segments: [
+              { text: "So " },
+              { type: "input", answer: "far this textbook has helped me study", width: "full" },
+              { text: " physics." }
+            ],
+            speech: "So far this textbook has helped me study physics.",
+            explanation: "help + O + (to) doの文。toは省略可能。"
+          },
+          {
+            id: 3,
+            ja: "その絵はあまりに大きいので地上からは見ることができない。",
+            choices: ["be", "cannot", "from", "it", "seen"],
+            segments: [
+              { text: "The picture is so big that " },
+              { type: "input", answer: "it cannot be seen from", width: "full" },
+              { text: " the ground." }
+            ],
+            speech: "The picture is so big that it cannot be seen from the ground.",
+            explanation: "「助動詞+受動態」の文。「地上から」はfrom the ground。"
+          },
+          {
+            id: 4,
+            ja: "途上国で子どもの労働力を搾取しているとして，非難されている会社もある。",
+            choices: ["child", "for", "criticized", "have", "exploiting", "been"],
+            segments: [
+              { text: "Some companies " },
+              { type: "input", answer: "have been criticized for exploiting child", width: "full" },
+              { text: " labor in developing countries." }
+            ],
+            speech: "Some companies have been criticized for exploiting child labor in developing countries.",
+            explanation: "「現在完了+受動態」の文。前置詞の後ろは名詞(句) がくる。"
+          },
+          {
+            id: 5,
+            ja: "彼が有罪とされたのは，本当だろうか。",
+            choices: ["be", "can", "found", "he", "it", "that", "true", "was"],
+            segments: [
+              { type: "input", answer: "Can it be true that he was found", accept: ["can it be true that he was found"], width: "full" },
+              { text: " guilty?" }
+            ],
+            speech: "Can it be true that he was found guilty?",
+            explanation: "Can it be true that~? は助動詞と形式主語の組み合わせ。また英文はfound him guiltyを受動態にしたもの。"
+          }
+        ]
+      }
+    };
+
+    // --- ユーティリティ ---
+    const normalizeString = (str) => {
+      if (!str) return "";
+      return str.replace(/[.,!?()]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    };
+
+    const checkAnswer = (input, answerObj) => {
+      const normalizedInput = normalizeString(input);
+      const acceptedAnswers = [answerObj.answer, ...(answerObj.accept || [])].map(normalizeString);
+      return acceptedAnswers.includes(normalizedInput);
+    };
+
+    // --- コンポーネント ---
+    const QuestionCard = ({ q, sectionKey, index }) => {
+      const [inputs, setInputs] = useState({});
+      const [showAnswer, setShowAnswer] = useState(false);
+      const [isSpeaking, setIsSpeaking] = useState(false);
+
+      const handleInputChange = (idx, value) => {
+        setInputs(prev => ({ ...prev, [idx]: value }));
+      };
+
+      const playAudio = () => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(q.speech);
+          utterance.lang = 'en-US';
+          utterance.rate = 0.9;
+          utterance.onstart = () => setIsSpeaking(true);
+          utterance.onend = () => setIsSpeaking(false);
+          utterance.onerror = () => setIsSpeaking(false);
+          window.speechSynthesis.speak(utterance);
+        } else {
+          alert("お使いのブラウザは音声再生に対応していません。");
+        }
+      };
+
+      return (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md mb-8">
+          <div className="bg-indigo-50/50 p-5 border-b border-indigo-100/50 flex items-start justify-between">
+            <div className="flex gap-4">
+              <span className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
+                {index + 1}
+              </span>
+              <p className="font-medium text-gray-800 leading-relaxed pt-1 text-xl md:text-2xl">
+                {q.ja}
+              </p>
+            </div>
+            <button
+              onClick={playAudio}
+              className={`p-3 rounded-full transition-colors flex-shrink-0 ${isSpeaking ? 'bg-indigo-200 text-indigo-700 animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-600'}`}
+              title="音声を再生"
+            >
+              <Volume2 size={24} />
+            </button>
+          </div>
+
+          <div className="p-6 md:p-8">
+            
+            {/* 並べ替えの選択肢 */}
+            {q.choices && (
+              <div className="mb-8 bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
+                <div className="flex items-center gap-2 text-base font-bold text-indigo-800 mb-3">
+                  <ListPlus size={20} />
+                  選択肢
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {q.choices.map((choice, i) => (
+                    <div 
+                      key={i} 
+                      className="px-4 py-2 bg-white text-indigo-950 border border-indigo-200 rounded-lg shadow-sm text-[22px] font-medium"
+                      style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                    >
+                      {choice}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 指定語句 */}
+            {q.hints && (
+              <div className="mb-6 text-lg text-gray-700 bg-amber-50/50 p-4 rounded-lg flex items-center gap-2 border border-amber-100 font-medium">
+                <Info size={22} className="text-amber-500" />
+                指定語句: <span className="font-serif tracking-wide">{q.hints}</span>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-y-4 gap-x-2 text-[22px] md:text-[28px]" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+              {q.segments.map((seg, idx) => {
+                if (seg.type === 'input') {
+                  const val = inputs[idx] || "";
+                  const isCorrect = checkAnswer(val, seg);
+                  const isTyping = val.length > 0;
+                  
+                  let inputClass = "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-gray-800";
+                  if (isCorrect) {
+                    inputClass = "border-green-500 bg-green-50 text-green-700 focus:ring-green-500 font-medium";
+                  } else if (isTyping) {
+                    inputClass = "border-amber-300 bg-amber-50 text-amber-800 focus:ring-amber-400";
+                  }
+
+                  let widthClass = "w-40 md:w-56";
+                  if (seg.width === 'full') widthClass = "w-full md:w-4/5";
+                  if (seg.width === 'short') widthClass = "w-16 md:w-20";
+
+                  return (
+                    <div key={idx} className={`relative flex items-center ${seg.width === 'full' ? 'w-full my-3' : ''}`}>
+                      {seg.prefix && <span className="mr-2 text-gray-500">{seg.prefix}</span>}
+                      <input
+                        type="text"
+                        value={val}
+                        onChange={(e) => handleInputChange(idx, e.target.value)}
+                        placeholder={seg.width === 'full' ? "ここに入力..." : ""}
+                        className={`block ${widthClass} px-3 py-2 rounded-md border-2 shadow-sm transition-colors focus:outline-none focus:ring-2 ${inputClass} text-[22px] md:text-[28px]`}
+                        style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                      />
+                      {isCorrect && (
+                        <span className="absolute right-3 text-green-500 pointer-events-none">
+                          <CheckCircle size={22} />
+                        </span>
+                      )}
+                    </div>
+                  );
+                }
+                return <span key={idx} className={`text-gray-800 whitespace-pre-wrap leading-loose ${seg.underline ? 'underline decoration-gray-500 decoration-2 underline-offset-[6px]' : ''}`}>{seg.text}</span>;
+              })}
+            </div>
+
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={() => setShowAnswer(!showAnswer)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-lg text-base md:text-lg font-medium transition-colors ${
+                  showAnswer 
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                    : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                }`}
+              >
+                {showAnswer ? <><EyeOff size={20} /> 解答を隠す</> : <><Eye size={20} /> 解答・解説を見る</>}
+              </button>
+            </div>
+
+            {showAnswer && (
+              <div className="mt-6 p-6 bg-blue-50 border-2 border-blue-100 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <h4 className="text-sm font-bold text-blue-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <CheckCircle size={18} /> Correct Answer
+                </h4>
+                <p className="text-[22px] md:text-[28px] text-blue-900 mb-4 leading-relaxed" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{q.correctText || q.speech}</p>
+                
+                {q.explanation && (
+                  <div className="pt-4 border-t-2 border-blue-200/60">
+                    <h4 className="text-sm font-bold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <BookOpen size={18} /> Explanation
+                    </h4>
+                    <p className="text-base md:text-lg text-blue-800/90 leading-relaxed">{q.explanation}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [activeSection, setActiveSection] = useState('A');
+      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+      const sectionKeys = Object.keys(quizData);
+      const currentSectionData = quizData[activeSection];
+
+      return (
+        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900">
+          
+          {/* Mobile Header */}
+          <div className="md:hidden bg-indigo-600 text-white p-4 flex items-center justify-between shadow-md z-20">
+            <div className="font-bold text-xl tracking-tight">Genius 2 / Unit 2</div>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-indigo-700 rounded-md transition-colors">
+              {isSidebarOpen ? <XIcon size={28} /> : <Menu size={28} />}
+            </button>
+          </div>
+
+          {/* Sidebar */}
+          <aside className={`
+            fixed md:static inset-y-0 left-0 w-72 bg-indigo-800 text-indigo-100 flex flex-col shadow-xl z-10 
+            transition-transform duration-300 ease-in-out
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          `}>
+            <div className="p-6 hidden md:block">
+              <h1 className="text-3xl font-black text-white tracking-tight leading-tight">Genius 2<br/><span className="text-indigo-300 font-semibold text-xl">Unit 2 Workbook</span></h1>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto py-4 px-4 space-y-2 mt-20 md:mt-0">
+              <p className="px-3 text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">Sections</p>
+              {sectionKeys.map(key => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setActiveSection(key);
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between text-left px-5 py-4 rounded-xl text-lg transition-all duration-200 ${
+                    activeSection === key 
+                      ? 'bg-white text-indigo-800 shadow-md font-bold' 
+                      : 'hover:bg-indigo-700 hover:text-white font-medium'
+                  }`}
+                >
+                  <span>Section {key.replace('_', ' ')}</span>
+                  {activeSection === key && <ChevronRight size={22} className="text-indigo-500" />}
+                </button>
+              ))}
+            </div>
+            
+            <div className="p-5 bg-indigo-900/50 text-sm text-indigo-300/70 text-center">
+              English Logic and Expression II
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 relative overflow-y-auto h-screen">
+            {/* Decorative background */}
+            <div className="absolute top-0 left-0 w-full h-72 bg-indigo-600 md:bg-indigo-600/5 -z-10 transition-colors"></div>
+
+            <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
+              <header className="mb-10 md:mb-14 pt-4 md:pt-0">
+                <span className="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-800 rounded-full text-base font-bold mb-4 md:hidden">Section {activeSection.replace('_', ' ')}</span>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white md:text-indigo-900 drop-shadow-sm md:drop-shadow-none leading-relaxed">
+                  {currentSectionData.title}
+                </h2>
+              </header>
+
+              <div className="space-y-8">
+                {currentSectionData.questions.map((q, index) => (
+                  <QuestionCard key={q.id} q={q} sectionKey={activeSection} index={index} />
+                ))}
+              </div>
+              
+              {/* Bottom Navigation */}
+              <div className="mt-16 flex justify-between items-center border-t border-gray-200 pt-8 pb-24 md:pb-8">
+                <button 
+                  disabled={sectionKeys.indexOf(activeSection) === 0}
+                  onClick={() => setActiveSection(sectionKeys[sectionKeys.indexOf(activeSection) - 1])}
+                  className="px-6 py-3 text-lg text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-50 rounded-lg transition-colors font-medium"
+                >
+                  ← 前のセクション
+                </button>
+                <button 
+                  disabled={sectionKeys.indexOf(activeSection) === sectionKeys.length - 1}
+                  onClick={() => setActiveSection(sectionKeys[sectionKeys.indexOf(activeSection) + 1])}
+                  className="px-6 py-3 text-lg bg-indigo-600 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-700 rounded-lg shadow-md transition-colors font-medium"
+                >
+                  次のセクション →
+                </button>
+              </div>
+            </div>
+          </main>
+          
+          {/* Overlay for mobile sidebar */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-0 md:hidden" 
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
